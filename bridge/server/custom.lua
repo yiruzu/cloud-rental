@@ -9,8 +9,10 @@ local inRental = {}
 ---@param model string  -- The model name of the vehicle
 ---@return table|nil  -- Returns the vehicle data table if found, otherwise nil
 local GetVehicleData = function(model)
-	for _, vehicleData in pairs(Config.Vehicles) do
-		if vehicleData.Model == model then return vehicleData end
+	for _, location in pairs(Config.Locations) do
+		for _, vehicleData in pairs(location.Vehicles) do
+			if vehicleData.Model == model then return vehicleData end
+		end
 	end
 	return nil
 end

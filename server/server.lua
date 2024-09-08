@@ -1,6 +1,8 @@
 local Config = require("shared.sh_config")
 local DebugMode = Config.DebugMode
 
+lib.versionCheck("yiruzu/cloud-rental")
+
 local CreateVehicleSV = function(_, vehModel, vehPos)
 	if DebugMode then print("[SERVER] Creating Vehicle:", vehModel, "at position:", vehPos) end
 	local veh = CreateVehicle(vehModel, vehPos.x, vehPos.y, vehPos.z, vehPos.w, true, true)

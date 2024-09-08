@@ -23,15 +23,15 @@ local remainingVehicleTypes = {}
 
 --[[ VEHICLE UTILITY FUNCTIONS ]]
 
-local InitializeVehicleTypes = function()
+local InitializeVehicleTypes = function(location)
 	table.wipe(remainingVehicleTypes)
-	for _, vehicle in pairs(Config.Vehicles) do
+	for _, vehicle in pairs(location.Vehicles) do
 		table.insert(remainingVehicleTypes, vehicle)
 	end
 end
 
-local GetRandomVehicle = function()
-	if #remainingVehicleTypes == 0 then InitializeVehicleTypes() end
+local GetRandomVehicle = function(location)
+	if #remainingVehicleTypes == 0 then InitializeVehicleTypes(location) end
 	local index = math.random(#remainingVehicleTypes)
 	return table.remove(remainingVehicleTypes, index)
 end
@@ -351,7 +351,7 @@ for _, location in pairs(Config.Locations) do
 	CreateZones(location)
 
 	for _, vehiclePos in ipairs(location.VehiclePositions) do
-		local randomVeh = GetRandomVehicle()
+		local randomVeh = GetRandomVehicle(location)
 		if DebugMode then print("[CLIENT] Spawning Vehicle:", randomVeh.Model, "at position:", vehiclePos) end
 		SPAWN_VEH.SpawnPreview(randomVeh.Model, vehiclePos)
 	end

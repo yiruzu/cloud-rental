@@ -1,9 +1,21 @@
 ClientNotify = function(text, locale)
-	exports["cloud-hud"]:Notify(locale.title, text, locale.type, 5000)
+	lib.notify({
+		title = locale.title,
+		description = text,
+		duration = 5000,
+		position = "top",
+		type = locale.type,
+	})
 end
 
 ServerNotify = function(source, text, locale)
-	TriggerClientEvent("cloud-hud:client:Notify", source, locale.title, text, locale.type, 5000)
+	TriggerClientEvent("ox_lib:notify", source, {
+		title = locale.title,
+		description = text,
+		duration = 5000,
+		position = "top",
+		type = locale.type,
+	})
 end
 
 VehFuel = function(vehicle)

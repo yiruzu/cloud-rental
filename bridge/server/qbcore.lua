@@ -8,8 +8,10 @@ local QBCore = exports["qb-core"]:GetCoreObject()
 local inRental = {}
 
 local GetVehicleData = function(model)
-	for _, vehicleData in pairs(Config.Vehicles) do
-		if vehicleData.Model == model then return vehicleData end
+	for _, location in pairs(Config.Locations) do
+		for _, vehicleData in pairs(location.Vehicles) do
+			if vehicleData.Model == model then return vehicleData end
+		end
 	end
 	return nil
 end

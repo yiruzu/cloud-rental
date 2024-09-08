@@ -6,7 +6,7 @@ use_experimental_fxv2_oal "yes"
 
 author "yiruzu"
 description "Cloud Service - Rental"
-version "1.1.0"
+version "1.2.0"
 
 discord "https://discord.gg/jAnEnyGBef"
 repository "https://github.com/yiruzu/cloud-rental"

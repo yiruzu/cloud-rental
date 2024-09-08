@@ -65,8 +65,10 @@ local RemoveVehicle = function(vehicle)
 end
 
 local GetVehicleData = function(vehicle)
-	for _, vehicleData in pairs(Config.Vehicles) do
-		if vehicleData.Model == GetEntityModel(vehicle) then return vehicleData end
+	for _, location in pairs(Config.Locations) do
+		for _, vehicleData in pairs(location.Vehicles) do
+			if vehicleData.Model == GetEntityModel(vehicle) then return vehicleData end
+		end
 	end
 	return nil
 end

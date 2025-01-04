@@ -1,68 +1,54 @@
-local Config = require("shared.sh_config")
-local Locales = require("shared.sh_locales")
+---@diagnostic disable: undefined-field
+
+local Config = require("configuration.config")
+local Locales = require("configuration.locales")
 
 if Config.Framework ~= "custom" then return end
 
 local inRental = {}
 
+--- Retrieves the Player ID for the given source
+---@param source number -- Player's source ID
+---@return number|nil -- The Player ID
+local function GetPlayerId(source)
+	if not source or source == 0 then return nil end
+	return Your_Framework.GetPlayer(source) -- example
+end
+
 --- Retrieves vehicle data based on the model name
 ---@param model string  -- The model name of the vehicle
 ---@return table|nil  -- Returns the vehicle data table if found, otherwise nil
-local GetVehicleData = function(model)
+local function GetVehicleConfig(model)
 	for _, location in pairs(Config.Locations) do
-		for _, vehicleData in pairs(location.Vehicles) do
-			if vehicleData.Model == model then return vehicleData end
+		for _, vehConfig in pairs(location.Vehicles) do
+			if vehConfig.Model == model then return vehConfig end
 		end
 	end
 	return nil
-end
-
---- Retrieves the player's name based on their source ID
----@param source number  -- The player's source ID
----@return string  -- The player's name or "Unknown" if the player is not found
-local GetPlayerName = function(source)
-	local Player = GetPlayer(source)
-	return Player and Player.GetName or "Unknown"
-end
-
---- Retrieves the player's money information
----@param source number  -- The player's source ID
----@return table|nil  -- Returns a table with bank and wallet amounts, or nil if the player is not found
-local GetPlayerMoney = function(source)
-	local Player = GetPlayer(source)
-	if not Player then return nil end
-	return { bank = Player.GetMoney("cash"), wallet = Player.GetMoney("bank") }
 end
 
 --- Deducts money from the player’s account
 ---@param source number  -- The player's source ID
 ---@param amount number  -- The amount of money to deduct
 ---@return boolean  -- Returns true if the deduction was successful, otherwise false
-local function DeductMoney(source, amount)
-	local Player = GetPlayer(source)
-	if not Player then return false end
+local DeductMoney = function(source, amount)
+	local player = GetPlayerId(source)
+	if not player then return false end
 
-	local cashAvailable = Player.GetMoney("cash")
-	local bankAvailable = Player.GetMoney("bank")
+	local cashAvailable = player.GetMoney("cash")
+	local bankAvailable = player.GetMoney("bank")
 
 	if cashAvailable >= amount then
-		Player.RemoveMoney("cash", amount)
+		player.RemoveMoney("cash", amount)
 		return true
 	elseif bankAvailable >= amount then
-		Player.RemoveMoney("bank", amount)
+		player.RemoveMoney("bank", amount)
 		return true
 	else
-		ServerNotify(source, Locales.Notification.NoMoney.text, Locales.Notification.NoMoney)
+		ServerNotify(source, Locales.Notification.NoMoney, "error")
 		return false
 	end
 end
-
---- Updates the rental status of a player
----@param source number  -- The player's source ID
----@param status boolean  -- The rental status (true if renting, false otherwise)
-lib.callback.register("cloud-rental:server:InRental", function(source, status)
-	inRental[source] = status
-end)
 
 --- Handles the start of a rental by deducting the unlock fee
 ---@param source number  -- The player's source ID
@@ -71,11 +57,11 @@ end)
 local HandleStartRental = function(source, model)
 	if not inRental[source] then return false end
 
-	local vehicleData = GetVehicleData(model)
-	if vehicleData then
-		local success = DeductMoney(source, vehicleData.UnlockFee)
-		if success then return true end
-	end
+	local vehConfig = GetVehicleConfig(model)
+	if not vehConfig then return false end
+
+	local success = DeductMoney(source, vehConfig.UnlockFee)
+	if success then return true end
 	return false
 end
 
@@ -86,13 +72,13 @@ end
 local HandlePenalty = function(source, model)
 	if not inRental[source] then return false end
 
-	local vehicleData = GetVehicleData(model)
-	if vehicleData then
-		local success = DeductMoney(source, vehicleData.DamagePenalty.PenaltyPrice)
-		if success then
-			ServerNotify(source, Locales.Notification.DamagePenalty.text:format(vehicleData.DamagePenalty.PenaltyPrice), Locales.Notification.DamagePenalty)
-			return true
-		end
+	local vehConfig = GetVehicleConfig(model)
+	if not vehConfig then return false end
+
+	local success = DeductMoney(source, vehConfig.DamagePenalty.PenaltyPrice)
+	if success then
+		ServerNotify(source, Locales.Notification.DamagePenalty:format(vehConfig.DamagePenalty.PenaltyPrice), "error")
+		return true
 	end
 	return false
 end
@@ -106,14 +92,35 @@ local HandleEndRental = function(source, price)
 
 	local success = DeductMoney(source, price)
 	if success then
-		ServerNotify(source, Locales.Notification.PaidRide.text:format(price), Locales.Notification.PaidRide)
+		ServerNotify(source, Locales.Notification.PaidRide:format(price), "info")
 		return true
 	end
 	return false
 end
 
-lib.callback.register("cloud-rental:server:GetPlayerName", GetPlayerName)
-lib.callback.register("cloud-rental:server:GetPlayerMoney", GetPlayerMoney)
+--- Retrieves the player's name based on their source ID
+---@param source number  -- The player's source ID
+---@return string  -- The player's name or "Unknown" if the player is not found
+local GetPlayerName = function(source)
+	local player = GetPlayerId(source)
+	return player and player.GetName or "Unknown"
+end
+
+--- Retrieves the player's money information
+---@param source number  -- The player's source ID
+---@return table|nil  -- Returns a table with bank and wallet amounts, or nil if the player is not found
+local GetPlayerMoney = function(source)
+	local player = GetPlayerId(source)
+	if not player then return nil end
+
+	return { bank = player.GetMoney("cash"), wallet = player.GetMoney("bank") }
+end
+
 lib.callback.register("cloud-rental:server:HandleStartRental", HandleStartRental)
 lib.callback.register("cloud-rental:server:HandlePenalty", HandlePenalty)
 lib.callback.register("cloud-rental:server:HandleEndRental", HandleEndRental)
+lib.callback.register("cloud-rental:server:GetPlayerName", GetPlayerName)
+lib.callback.register("cloud-rental:server:GetPlayerMoney", GetPlayerMoney)
+lib.callback.register("cloud-rental:server:InRental", function(source, status)
+	inRental[source] = status
+end)

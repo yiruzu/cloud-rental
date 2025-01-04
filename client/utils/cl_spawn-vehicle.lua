@@ -1,13 +1,16 @@
-local Config = require("shared.sh_config")
+-- Configuration
+local Config = require("configuration.config")
 
-local DebugMode = Config.DebugMode
+-- Stores
+local VehiclesStore = require("client.stores.cl_vehicles")
 
-local spawnedVehicles = {}
+-- Utils
+local DebugPrint = require("shared.utils.sh_debug-print")
 
 local SpawnPreviewVehicles = function(vehModel, vehPos)
 	if not IsModelInCdimage(vehModel) or not IsModelAVehicle(vehModel) then
-		if DebugMode then print("Vehicle hash is not valid, failed to spawn vehicle.") end
-		return false
+		DebugPrint("Vehicle hash is not valid, failed to spawn vehicle.", "error")
+		return nil
 	end
 
 	lib.requestModel(vehModel)
@@ -29,33 +32,34 @@ local SpawnPreviewVehicles = function(vehModel, vehPos)
 		end
 		SetModelAsNoLongerNeeded(veh)
 
-		table.insert(spawnedVehicles, { handle = veh, plate = GetVehicleNumberPlateText(veh), ownerId = nil })
+		table.insert(VehiclesStore.SpawnedVehicles, { handle = veh, plate = GetVehicleNumberPlateText(veh), ownerId = nil })
 		return veh
 	end
+	return nil
 end
 
-local SpawnVehicle = function(vehModel, vehPos)
+local SpawnVehicle = function(vehHandle, vehModel, vehPos)
 	local veh
 
 	if not IsModelInCdimage(vehModel) or not IsModelAVehicle(vehModel) then
-		if DebugMode then print("Vehicle hash is not valid, failed to spawn vehicle.") end
-		return false
+		DebugPrint("Vehicle hash is not valid, failed to spawn vehicle.", "error")
+		return nil
 	end
 
-	local netId = lib.callback.await("cloud-rental:server:CreateVehicleSV", false, vehModel, vehPos)
+	local netId = lib.callback.await("cloud-rental:server:CreateVehicleSV", false, vehModel, GetVehicleType(vehHandle), vehPos)
 
-	if DebugMode then print("NetId [1]:", netId) end
+	DebugPrint("NetId [1]:", netId, "info")
 
 	veh = lib.waitFor(function()
-		if DebugMode then print("Waiting for vehicle") end
+		DebugPrint("Waiting for vehicle", "info")
 		if NetworkDoesEntityExistWithNetworkId(netId) then return NetToVeh(netId) end
-	end, "Could not load entity in time.", 1000)
+	end, "Could not load vehicle in time.", 3000)
 
-	if DebugMode then print("NetId [2]:", netId) end
+	DebugPrint("NetId [2]:", netId, "info")
 
 	if not netId or netId == 0 then
-		if DebugMode then print("An error occurred while attempting to spawn the vehicles.") end
-		return false
+		DebugPrint("An error occurred while attempting to spawn the vehicles.", "error")
+		return nil
 	end
 
 	while not DoesEntityExist(veh) do
@@ -74,6 +78,7 @@ local SpawnVehicle = function(vehModel, vehPos)
 		SetModelAsNoLongerNeeded(veh)
 		return veh
 	end
+	return nil
 end
 
-return { SpawnPreview = SpawnPreviewVehicles, Spawn = SpawnVehicle, GetSpawned = spawnedVehicles }
+return { SpawnPreview = SpawnPreviewVehicles, Spawn = SpawnVehicle }

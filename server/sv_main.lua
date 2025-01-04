@@ -1,0 +1,1 @@
+lib.versionCheck("yiruzu/cloud-rental")

@@ -1,5 +1,5 @@
-local Config = require("shared.sh_config")
-local Locales = require("shared.sh_locales")
+local Config = require("configuration.config")
+local Locales = require("configuration.locales")
 
 if Config.Framework ~= "esx" then return end
 
@@ -7,70 +7,60 @@ local ESX = exports["es_extended"]:getSharedObject()
 
 local inRental = {}
 
-local GetVehicleData = function(model)
+local function GetPlayerId(source)
+	if not source or source == 0 then return nil end
+	return ESX.GetPlayerFromId(source)
+end
+
+local function GetVehicleConfig(model)
 	for _, location in pairs(Config.Locations) do
-		for _, vehicleData in pairs(location.Vehicles) do
-			if vehicleData.Model == model then return vehicleData end
+		for _, vehConfig in pairs(location.Vehicles) do
+			if vehConfig.Model == model then return vehConfig end
 		end
 	end
 	return nil
 end
 
-local GetPlayerName = function(source)
-	local xPlayer = ESX.GetPlayerFromId(source)
-	return xPlayer and xPlayer.getName() or "Unknown"
-end
-
-local GetPlayerMoney = function(source)
-	local xPlayer = ESX.GetPlayerFromId(source)
-	if not xPlayer then return nil end
-	return { bank = xPlayer.getAccount("bank").money, wallet = xPlayer.getMoney() }
-end
-
 local DeductMoney = function(source, amount)
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local xPlayer = GetPlayerId(source)
 	if not xPlayer then return false end
 
-	local moneyAvailable = xPlayer.getMoney()
+	local moneyAvailable = xPlayer.getAccount("money").money
 	local bankAvailable = xPlayer.getAccount("bank").money
 
 	if moneyAvailable >= amount then
-		xPlayer.removeMoney(amount)
+		xPlayer.removeAccountMoney("money", amount)
 		return true
 	elseif bankAvailable >= amount then
 		xPlayer.removeAccountMoney("bank", amount)
 		return true
 	else
-		ServerNotify(source, Locales.Notification.NoMoney.text, Locales.Notification.NoMoney)
+		ServerNotify(source, Locales.Notification.NoMoney, "error")
 		return false
 	end
 end
 
-lib.callback.register("cloud-rental:server:InRental", function(source, status)
-	inRental[source] = status
-end)
-
 local HandleStartRental = function(source, model)
 	if not inRental[source] then return false end
 
-	local vehicleData = GetVehicleData(model)
-	if vehicleData then
-		local success = DeductMoney(source, vehicleData.UnlockFee)
-		if success then return true end
-	end
+	local vehConfig = GetVehicleConfig(model)
+	if not vehConfig then return false end
+
+	local success = DeductMoney(source, vehConfig.UnlockFee)
+	if success then return true end
 	return false
 end
 
 local HandlePenalty = function(source, model)
 	if not inRental[source] then return false end
 
-	local vehicleData = GetVehicleData(model)
-	if vehicleData then
-		local success = DeductMoney(source, vehicleData.DamagePenalty.PenaltyPrice)
-		if success then
-			ServerNotify(source, Locales.Notification.DamagePenalty.text:format(vehicleData.DamagePenalty.PenaltyPrice), Locales.Notification.DamagePenalty)
-			return true
-		end
+	local vehConfig = GetVehicleConfig(model)
+	if not vehConfig then return false end
+
+	local success = DeductMoney(source, vehConfig.DamagePenalty.PenaltyPrice)
+	if success then
+		ServerNotify(source, Locales.Notification.DamagePenalty:format(vehConfig.DamagePenalty.PenaltyPrice), "error")
+		return true
 	end
 	return false
 end
@@ -80,14 +70,28 @@ local HandleEndRental = function(source, price)
 
 	local success = DeductMoney(source, price)
 	if success then
-		ServerNotify(source, Locales.Notification.PaidRide.text:format(price), Locales.Notification.PaidRide)
+		ServerNotify(source, Locales.Notification.PaidRide:format(price), "info")
 		return true
 	end
 	return false
 end
 
-lib.callback.register("cloud-rental:server:GetPlayerName", GetPlayerName)
-lib.callback.register("cloud-rental:server:GetPlayerMoney", GetPlayerMoney)
+local GetPlayerName = function(source)
+	local xPlayer = GetPlayerId(source)
+	return xPlayer and xPlayer.getName() or "Unknown"
+end
+
+local GetPlayerMoney = function(source)
+	local xPlayer = GetPlayerId(source)
+	if not xPlayer then return nil end
+	return { bank = xPlayer.getAccount("bank").money, wallet = xPlayer.getMoney() }
+end
+
 lib.callback.register("cloud-rental:server:HandleStartRental", HandleStartRental)
 lib.callback.register("cloud-rental:server:HandlePenalty", HandlePenalty)
 lib.callback.register("cloud-rental:server:HandleEndRental", HandleEndRental)
+lib.callback.register("cloud-rental:server:GetPlayerName", GetPlayerName)
+lib.callback.register("cloud-rental:server:GetPlayerMoney", GetPlayerMoney)
+lib.callback.register("cloud-rental:server:InRental", function(source, status)
+	inRental[source] = status
+end)

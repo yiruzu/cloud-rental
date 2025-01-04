@@ -1,12 +1,18 @@
+--? For support, join our Discord server: https://discord.gg/jAnEnyGBef
+
 return {
-	Framework = "esx", -- Supported frameworks: "esx", "qbcore", or "custom"
+	--[[ GENERAL SETTINGS ]]
+	Framework = "esx", -- Supported: "esx", "qbcore" or "custom"
+	DebugMode = false, -- Enable print statements for debugging
 
-	DisplayDistance = 3.5, -- Distance at which Help/Floating Text is displayed
-	InteractDistance = 3.5, -- Distance at which players can interact with the vehicle
+	--[[ DISTANCE SETTINGS ]]
 
-	--[[ Vehicle Settings ]]
+	DisplayDistance = 3.75, -- Distance at which Help/Floating Text is shown
+	InteractDistance = 3.75, -- Distance within which players can interact with the vehicle
 
-	MaxParkingTime = 300, -- Time (in seconds) until the vehicle gets deleted
+	--[[ VEHICLE SETTINGS ]]
+
+	MaxParkingTime = 300, -- Time (in seconds) before a vehicle is deleted
 
 	VehicleBlip = {
 		Name = "Rental Vehicle",
@@ -16,16 +22,16 @@ return {
 	},
 
 	VehicleColor = {
-		Enabled = true,
+		Enabled = true, -- If false, a random color will be used for the vehicle
 		Primary = { 255, 255, 255 }, -- r, g, b
 		Secondary = { 255, 255, 255 }, -- r, g, b
 	},
 
-	WarpPed = true, -- Teleports the player into the vehicle
-	VehicleKeys = false,
-	FuelSystem = true,
+	WarpPed = true, -- Teleport the player into the vehicle after renting it
+	VehicleKeys = false, -- Enable vehicle keys --! (requires configuration in functions.lua)
+	FuelSystem = true, -- Enable fuel system --! (requires configuration in functions.lua)
 
-	--[[ Rental Locations ]]
+	--[[ RENTAL LOCATIONS ]]
 
 	Locations = {
 		["Example Rental Zone (1)"] = {
@@ -59,14 +65,14 @@ return {
 			},
 			Vehicles = {
 				{
-					DisplayName = "Itali RSX", -- The vehicle display name
+					DisplayName = "Itali RSX", -- Display name of the vehicle
 					Model = `italirsx`, -- Vehicle model name
-					PricePerMinute = 45, -- Rental cost per minute for using this vehicle
-					UnlockFee = 100, -- Initial fee to unlock and start using the vehicle
+					PricePerMinute = 45, -- Rental cost per minute
+					UnlockFee = 100, -- Fee to unlock the vehicle
 					DamagePenalty = {
-						Enabled = true, -- Enable or disable penalties for vehicle damage
-						PenaltyPrice = 170, -- Amount charged when the vehicle is damaged
-						DamagePercentForPenalty = 5, -- Percentage of damage required to trigger the penalty (1 = very sensitive, 100 = vehicle must be destroyed)
+						Enabled = true, -- Enable damage penalties
+						PenaltyPrice = 170, -- Penalty for vehicle damage
+						DamagePercentForPenalty = 5, -- Percentage of damage to trigger penalty (1 = very sensitive, 100 = vehicle must be destroyed)
 					},
 				},
 				{
@@ -128,6 +134,4 @@ return {
 			},
 		},
 	},
-
-	DebugMode = false, -- Adds print statements for debugging purposes
 }

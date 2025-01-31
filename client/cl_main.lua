@@ -1,10 +1,6 @@
 -- Configuration
-local Config = require("configuration.config")
-local Locales = require("configuration.locales")
-
--- Stores
-local PlayerState = require("client.stores.cl_player")
-local TimerState = require("client.stores.cl_timer")
+local Config = require("config.cfg_main")
+local Locales = require("config.cfg_locales")
 
 -- Utils
 local DebugPrint = require("shared.utils.sh_debug-print")
@@ -27,17 +23,17 @@ local function MonitorVehicle(vehicle)
 	CreateThread(function()
 		local isVehMatching = GetVehicle.IsMatching("RentedVehicles", vehicle) and GetVehicle.IsOwner(vehicle, cache.serverId)
 		while IsPedInVehicle(cache.ped, vehicle, false) and isVehMatching do
-			if not TimerState.GetState().isActive then
-				TimerState.Reset()
-				TimerState.SetActive(true)
+			if not TimerState.Active then
+				TimerState:Reset()
+				TimerState.Active = true
 			end
 
 			local vehConfig = GetVehicle.Config(vehicle)
 			if not vehConfig then break end
 
 			local currentTime = GetGameTimer()
-			TimerState.UpdateTimeLeft(Config.MaxParkingTime)
-			TimerState.UpdateLastTime()
+			TimerState.TimeLeft = Config.MaxParkingTime
+			TimerState.LastUpdate = GetGameTimer()
 
 			if vehConfig.DamagePenalty.Enabled then
 				local currentHealth = GetVehicleBodyHealth(vehicle)
@@ -51,8 +47,8 @@ local function MonitorVehicle(vehicle)
 
 			if currentTime - lastPriceInterval >= priceInterval then
 				lastPriceInterval = currentTime
-				TimerState.UpdatePrice(vehConfig.PricePerMinute)
-				DebugPrint("Total price for vehicle " .. vehicle .. ": " .. TimerState.GetState().totalPrice, "info")
+				TimerState.TotalPrice = TimerState.TotalPrice + vehConfig.PricePerMinute
+				DebugPrint("Total price for vehicle " .. vehicle .. ": " .. TimerState.TotalPrice, "info")
 
 				local moneyAvailable = lib.callback.await("cloud-rental:server:GetPlayerMoney", false)
 				local amount = vehConfig.DamagePenalty.PenaltyPrice
@@ -75,7 +71,7 @@ local function InRentalThread()
 	ClearAllHelpMessages()
 	local playerName = lib.callback.await("cloud-rental:server:GetPlayerName", false)
 
-	while PlayerState.GetState().isRentingVehicle do
+	while PlayerState.isRentingVehicle do
 		local waitTime = 1000
 		local playerCoords = GetEntityCoords(cache.ped)
 		local nearbyVehicles = lib.getNearbyVehicles(playerCoords, Config.DisplayDistance + 0.1, false)
@@ -93,8 +89,8 @@ local function InRentalThread()
 					local vehConfig = GetVehicle.Config(vehicle)
 					if not vehConfig then break end
 
-					Scaleform.FloatingHelpText(FormattedText.Vehicle.Owned(vehConfig, TimerState.GetState().totalPrice, playerName), vehicle)
-					Scaleform.HelpText(Locales.VehicleHelpText.TimeLeft:format(FormattedText.Format.Time(TimerState.GetState().timeLeft)))
+					Scaleform.FloatingHelpText(FormattedText.Vehicle.Owned(vehConfig, TimerState.TotalPrice, playerName), vehicle)
+					Scaleform.HelpText(Locales.VehicleHelpText.TimeLeft:format(FormattedText.Format.Time(TimerState.TimeLeft)))
 
 					if distance >= Config.InteractDistance then break end
 
@@ -174,7 +170,7 @@ local function OpenRentDialog(vehConfig, vehicle, location)
 			if Config.VehicleKeys then VehKeys(serverVeh) end
 			if Config.FuelSystem then VehFuel(serverVeh) end
 
-			PlayerState.SetState("isRentingVehicle", true)
+			PlayerState.isRentingVehicle = true
 			CreateThread(InRentalThread)
 		else
 			lib.callback.await("cloud-rental:server:InRental", false, false)
@@ -184,7 +180,7 @@ end
 
 local function InZoneThread(location)
 	local lastVehicle = 0
-	while PlayerState.GetState().inRentalZone do
+	while PlayerState.inRentalZone do
 		local waitTime = 1000
 		local playerCoords = GetEntityCoords(cache.ped)
 		local nearbyVehicles = lib.getNearbyVehicles(playerCoords, Config.DisplayDistance + 0.1, false)
@@ -209,7 +205,7 @@ local function InZoneThread(location)
 				if distance < Config.InteractDistance and IsControlJustReleased(0, 38) then
 					if IsPlayerDead(cache.playerId) then break end
 
-					if PlayerState.GetState().isRentingVehicle then
+					if PlayerState.isRentingVehicle then
 						lib.alertDialog({
 							header = Locales.Dialog.AlreadyRented,
 							centered = true,
@@ -238,12 +234,12 @@ local function CreateZones(location)
 
 	function rentalZone:onEnter()
 		DebugPrint("Entered range of zone:", self.id, "info")
-		PlayerState.SetState("inRentalZone", true)
+		PlayerState.inRentalZone = true
 	end
 
 	function rentalZone:onExit()
 		DebugPrint("Left range of zone", self.id, "info")
-		PlayerState.SetState("inRentalZone", false)
+		PlayerState.inRentalZone = false
 	end
 end
 

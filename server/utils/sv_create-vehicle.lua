@@ -1,5 +1,5 @@
 -- Configuration
-local Config = require("configuration.config")
+local Config = require("config.cfg_main")
 
 -- Utils
 local DebugPrint = require("shared.utils.sh_debug-print")

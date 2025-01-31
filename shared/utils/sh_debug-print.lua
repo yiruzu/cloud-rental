@@ -1,4 +1,4 @@
-local Config = require("configuration.config")
+local Config = require("config.cfg_main")
 
 local DebugPrint = function(...)
 	if Config.DebugMode then

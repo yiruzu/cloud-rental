@@ -1,5 +1,5 @@
 -- Configuration
-local Locales = require("configuration.locales")
+local Locales = require("config.cfg_locales")
 
 -- Vehicle
 

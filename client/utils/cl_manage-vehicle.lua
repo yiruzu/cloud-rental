@@ -1,8 +1,3 @@
--- Stores
-local PlayerState = require("client.stores.cl_player")
-local VehiclesStore = require("client.stores.cl_vehicles")
-local TimerState = require("client.stores.cl_timer")
-
 -- Utils
 local DebugPrint = require("shared.utils.sh_debug-print")
 
@@ -46,9 +41,9 @@ local SetVehicleOwner = function(vehicle, playerId)
 end
 
 local EndRentalRide = function()
-	PlayerState.SetState("isRentingVehicle", false)
-	TimerState.SetActive(false)
-	lib.callback.await("cloud-rental:server:HandleEndRental", false, TimerState.GetState().totalPrice)
+	PlayerState.isRentingVehicle = false
+	TimerState.Active = false
+	lib.callback.await("cloud-rental:server:HandleEndRental", false, TimerState.TotalPrice)
 	lib.callback.await("cloud-rental:server:InRental", false, false)
 	RemoveVehicle()
 end

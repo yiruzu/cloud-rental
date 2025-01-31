@@ -1,8 +1,5 @@
 -- Configuration
-local Config = require("configuration.config")
-
--- Stores
-local VehiclesStore = require("client.stores.cl_vehicles")
+local Config = require("config.cfg_main")
 
 -- Utils
 local DebugPrint = require("shared.utils.sh_debug-print")

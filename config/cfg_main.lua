@@ -133,5 +133,97 @@ return {
 				-- Add more vehicles as needed
 			},
 		},
+		["Example Rental Zone (2)"] = {
+			CenterPosition = vec3(-972.2536, -2703.1958, 13.8627), -- Center coordinates of the rental zone
+			Radius = 35.0, -- Radius of the rental zone
+			VehiclePositions = {
+				vec4(-969.9888, -2710.8521, 13.8472, 359.1183),
+				-- Add more vehicle positions as needed
+			},
+			SpawnPositions = {
+				vec4(-987.4557, -2697.6235, 13.8307, 62.7062),
+				-- Add more spawn positions as needed
+			},
+			BlipIcon = {
+				Name = "Rental",
+				Sprite = 326,
+				Color = 0,
+				Scale = 0.6,
+			},
+			BlipRadius = {
+				Sprite = 9,
+				Color = 3,
+				Alpha = 75,
+			},
+			Vehicles = {
+				{
+					DisplayName = "Itali RSX", -- Display name of the vehicle
+					Model = `italirsx`, -- Vehicle model name
+					PricePerMinute = 45, -- Rental cost per minute
+					UnlockFee = 100, -- Fee to unlock the vehicle
+					DamagePenalty = {
+						Enabled = true, -- Enable damage penalties
+						PenaltyPrice = 170, -- Penalty for vehicle damage
+						DamagePercentForPenalty = 5, -- Percentage of damage to trigger penalty (1 = very sensitive, 100 = vehicle must be destroyed)
+					},
+				},
+				{
+					DisplayName = "Comet S2",
+					Model = `comet6`,
+					PricePerMinute = 40,
+					UnlockFee = 90,
+					DamagePenalty = {
+						Enabled = true,
+						PenaltyPrice = 150,
+						DamagePercentForPenalty = 4.5,
+					},
+				},
+				{
+					DisplayName = "Asea",
+					Model = `asea`,
+					PricePerMinute = 15,
+					UnlockFee = 30,
+					DamagePenalty = {
+						Enabled = true,
+						PenaltyPrice = 40,
+						DamagePercentForPenalty = 12.5,
+					},
+				},
+				{
+					DisplayName = "Baller",
+					Model = `baller`,
+					PricePerMinute = 20,
+					UnlockFee = 40,
+					DamagePenalty = {
+						Enabled = true,
+						PenaltyPrice = 50,
+						DamagePercentForPenalty = 12.5,
+					},
+				},
+				{
+					DisplayName = "BMX",
+					Model = `bmx`,
+					PricePerMinute = 5,
+					UnlockFee = 10,
+					DamagePenalty = {
+						Enabled = true,
+						PenaltyPrice = 10,
+						DamagePercentForPenalty = 12.5,
+					},
+				},
+				{
+					DisplayName = "Faggio Sport",
+					Model = `faggio`,
+					PricePerMinute = 10,
+					UnlockFee = 15,
+					DamagePenalty = {
+						Enabled = true,
+						PenaltyPrice = 15,
+						DamagePercentForPenalty = 12.5,
+					},
+				},
+				-- Add more vehicles as needed
+			},
+		},
 	},
 }

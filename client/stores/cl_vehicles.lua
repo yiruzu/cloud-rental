@@ -1,4 +1,4 @@
-return {
+VehiclesStore = {
 	RentedVehicles = {},
 	SpawnedVehicles = {},
 }

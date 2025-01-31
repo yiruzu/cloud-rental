@@ -2,13 +2,13 @@
 
 > Transform your FiveM server with Cloud Rental, an advanced vehicle rental script designed for efficiency and flexibility.
 
-## `📜`丨 Overview
+## 📜丨Overview
 
 - Secure event handling ensures secure and reliable vehicle rentals, minimizing the risk of exploitation and maintaining game balance.
 - Performance-focused design to keep server resources optimized, providing a lag-free experience even during peak usage.
 - Advanced customization options allow for seamless integration with diverse server setups and frameworks, tailoring the rental system to fit your unique needs.
 
-## `📸`丨 Preview
+## 📸丨Preview
 
 > [YouTube](https://www.youtube.com/watch?v=usqmm4VMlSU)
 

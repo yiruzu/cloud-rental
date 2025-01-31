@@ -1,5 +1,5 @@
-local Config = require("configuration.config")
-local Locales = require("configuration.locales")
+local Config = require("config.cfg_main")
+local Locales = require("config.cfg_locales")
 
 if Config.Framework ~= "qbcore" then return end
 
